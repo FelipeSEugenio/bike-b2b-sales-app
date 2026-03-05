@@ -21,6 +21,7 @@ export default class BikeCatalog extends LightningElement {
             console.error(error);
         }
     }
+
     get hasBikes() {
         return this.bikes && this.bikes.length > 0;
     }
