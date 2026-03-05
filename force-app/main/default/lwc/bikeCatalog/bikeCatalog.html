@@ -1,35 +1,34 @@
 <template>
-
     <lightning-card title="Bike Catalog">
+        <div class="slds-p-around_medium">
 
-        <template if:true={bikes}>
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Carregando"></lightning-spinner>
+            </template>
 
-            <div class="slds-grid slds-wrap">
+            <template if:true={errorMessage}>
+                <div class="slds-text-color_error">{errorMessage}</div>
+            </template>
 
-                <template for:each={bikes} for:item="bike">
+            <template if:true={hasBikes}>
+                <div class="slds-grid slds-wrap">
+                    <template for:each={bikes} for:item="bike">
+                        <div key={bike.Id} class="slds-col slds-size_1-of-3 slds-p-around_small">
+                            <lightning-card title={bike.Name}>
+                                <p class="slds-p-horizontal_small">Type: {bike.Bike_Type__c}</p>
+                                <p class="slds-p-horizontal_small">Price: ${bike.Price__c}</p>
+                            </lightning-card>
+                        </div>
+                    </template>
+                </div>
+            </template>
 
-                    <div key={bike.Id} class="slds-col slds-size_1-of-3 slds-p-around_small">
-
-                        <lightning-card title={bike.Name}>
-
-                            <p class="slds-p-horizontal_small">
-                                Type: {bike.Bike_Type__c}
-                            </p>
-
-                            <p class="slds-p-horizontal_small">
-                                Price: ${bike.Price__c}
-                            </p>
-
-                        </lightning-card>
-
-                    </div>
-
+            <template if:false={hasBikes}>
+                <template if:false={isLoading}>
+                    <div>Nenhuma bike ativa encontrada.</div>
                 </template>
+            </template>
 
-            </div>
-
-        </template>
-
+        </div>
     </lightning-card>
-
 </template>
