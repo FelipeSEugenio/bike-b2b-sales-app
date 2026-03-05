@@ -1,3 +1,35 @@
 <template>
-    
+
+    <lightning-card title="Bike Catalog">
+
+        <template if:true={bikes}>
+
+            <div class="slds-grid slds-wrap">
+
+                <template for:each={bikes} for:item="bike">
+
+                    <div key={bike.Id} class="slds-col slds-size_1-of-3 slds-p-around_small">
+
+                        <lightning-card title={bike.Name}>
+
+                            <p class="slds-p-horizontal_small">
+                                Type: {bike.Bike_Type__c}
+                            </p>
+
+                            <p class="slds-p-horizontal_small">
+                                Price: ${bike.Price__c}
+                            </p>
+
+                        </lightning-card>
+
+                    </div>
+
+                </template>
+
+            </div>
+
+        </template>
+
+    </lightning-card>
+
 </template>
