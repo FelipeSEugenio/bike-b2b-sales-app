@@ -14,7 +14,7 @@ public with sharing class BikeSelector {
             : Math.min(limitSize, 200);
 
         return [
-            SELECT Id, Name, SKU__c, Price__c, Bike_Type__c, Status__c
+            SELECT Id, Name, SKU__c, Price__c, Bike_Type__c, Status__c, Image_URL__c
             FROM Bike__c
             WHERE Status__c = 'Active'
             ORDER BY Name
