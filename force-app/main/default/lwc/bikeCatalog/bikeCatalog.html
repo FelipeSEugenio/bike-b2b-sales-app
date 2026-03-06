@@ -16,15 +16,18 @@
                         <div key={bike.Id} class="slds-col slds-size_1-of-3 slds-p-around_small">
                             <lightning-card title={bike.Name}>
 
-                                <!-- Imagem -->
-                                <template if:true={bike.Image_URL__c}>
-                                    <img src={bike.Image_URL__c}
-                                        alt={bike.Name}
-                                        style="width:100%; height:160px; object-fit:cover;">
-                                </template>
+                                <div class="slds-p-horizontal_small slds-p-top_small">
+                                    <img src={bike.Image_URL_c__c}
+     alt={bike.Name}
+     style="width:100%; height:180px; object-fit:contain; display:block;" />
+                                </div>
 
-                                <p class="slds-p-horizontal_small">Type: {bike.Bike_Type__c}</p>
-                                <p class="slds-p-horizontal_small">Price: ${bike.Price__c}</p>
+                                <p class="slds-p-horizontal_small slds-p-top_small">
+                                    Type: {bike.Bike_Type__c}
+                                </p>
+                                <p class="slds-p-horizontal_small slds-p-bottom_small">
+                                    Price: ${bike.Price__c}
+                                </p>
 
                             </lightning-card>
                         </div>
