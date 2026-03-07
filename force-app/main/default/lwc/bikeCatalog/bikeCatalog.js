@@ -3,18 +3,30 @@ import getActiveBikes from '@salesforce/apex/BikeSelector.getActiveBikes';
 
 export default class BikeCatalog extends LightningElement {
     bikes = [];
+    isLoading = true;
+    errorMessage;
 
     @wire(getActiveBikes, { limitSize: 50 })
     wiredBikes({ error, data }) {
+        this.isLoading = false;
+
         if (data) {
             this.bikes = data.map(bike => ({
                 ...bike,
-                imageUrl: bike.Image_URL__c ? String(bike.Image_URL__c).trim() : ''
+                Image_URL_c__c: bike.Image_URL_c__c ? String(bike.Image_URL_c__c).trim() : ''
             }));
-            console.log(JSON.stringify(this.bikes));
+            this.errorMessage = undefined;
+            console.log('Bikes carregadas:', JSON.stringify(this.bikes));
         } else if (error) {
-            console.error(error);
+            this.bikes = [];
+            this.errorMessage = 'Erro ao carregar bikes.';
+            console.error('Erro no wire:', error);
         }
+    }
+
+    handleBikeClick(event) {
+        const bikeId = event.currentTarget.dataset.id;
+        console.log('Bike selecionada:', bikeId);
     }
 
     get hasBikes() {
