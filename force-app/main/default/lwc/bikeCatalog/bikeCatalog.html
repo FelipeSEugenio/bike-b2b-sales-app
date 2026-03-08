@@ -2,23 +2,31 @@
     <lightning-card title="Bike Catalog">
         <div class="slds-p-around_medium">
 
+            <!-- spinner enquanto carrega -->
             <template if:true={isLoading}>
                 <lightning-spinner alternative-text="Carregando"></lightning-spinner>
             </template>
 
+            <!-- mensagem de erro -->
             <template if:true={errorMessage}>
                 <div class="slds-text-color_error">{errorMessage}</div>
             </template>
 
+            <!-- catálogo de bikes -->
             <template if:true={hasBikes}>
                 <div class="catalog-grid">
+
                     <template for:each={bikes} for:item="bike">
+
+                        <!-- card da bike -->
                         <article
                             key={bike.Id}
                             class="bike-card"
                             data-id={bike.Id}
                             onclick={handleBikeClick}
                         >
+
+                            <!-- imagem da bike -->
                             <div class="bike-image-wrapper">
                                 <img
                                     class="bike-image"
@@ -27,13 +35,20 @@
                                 />
                             </div>
 
+                            <!-- conteúdo da bike -->
                             <div class="bike-content">
-                                <h3 class="bike-name">{bike.Name}</h3>
 
+                                <!-- nome -->
+                                <h3 class="bike-name">
+                                    {bike.Name}
+                                </h3>
+
+                                <!-- tipo -->
                                 <div class="bike-type">
                                     <lightning-badge label={bike.Bike_Type__c}></lightning-badge>
                                 </div>
 
+                                <!-- preço -->
                                 <div class="bike-price">
                                     <lightning-formatted-number
                                         value={bike.Price__c}
@@ -41,15 +56,57 @@
                                         currency-code="USD">
                                     </lightning-formatted-number>
                                 </div>
+
                             </div>
+
                         </article>
+
                     </template>
+
                 </div>
             </template>
 
+            <!-- detalhe da bike selecionada -->
+            <template if:true={selectedBike}>
+
+    <div class="slds-m-top_large slds-box">
+
+        <h2 class="slds-text-heading_medium">
+            Bike Details
+        </h2>
+
+        <img
+            src={selectedBike.Image_URL_c__c}
+            style="width:250px; margin-top:10px;"
+        />
+
+        <p><strong>Name:</strong> {selectedBike.Name}</p>
+
+        <p><strong>SKU:</strong> {selectedBike.SKU__c}</p>
+
+        <p><strong>Type:</strong> {selectedBike.Bike_Type__c}</p>
+
+        <p><strong>Status:</strong> {selectedBike.Status__c}</p>
+
+        <p>
+            <strong>Price:</strong>
+            <lightning-formatted-number
+                value={selectedBike.Price__c}
+                format-style="currency"
+                currency-code="USD">
+            </lightning-formatted-number>
+        </p>
+
+    </div>
+
+</template>
+
+            <!-- mensagem se não houver bikes -->
             <template if:false={hasBikes}>
                 <template if:false={isLoading}>
-                    <div>Nenhuma bike ativa encontrada.</div>
+                    <div>
+                        Nenhuma bike ativa encontrada.
+                    </div>
                 </template>
             </template>
 

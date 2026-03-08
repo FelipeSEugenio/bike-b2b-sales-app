@@ -1,8 +1,10 @@
 public with sharing class BikeSelector {
 
+    // Retorna bikes ativas para o catálogo
     @AuraEnabled(cacheable=true)
     public static List<Bike__c> getActiveBikes(Integer limitSize) {
 
+        // Define limite padrão e evita valores muito altos
         Integer sizeToUse = (limitSize == null || limitSize <= 0)
             ? 50
             : Math.min(limitSize, 200);
@@ -16,6 +18,7 @@ public with sharing class BikeSelector {
         ];
     }
 
+    // Busca uma bike pelo Id
     @AuraEnabled(cacheable=true)
     public static Bike__c getById(Id bikeId) {
         if (bikeId == null) return null;
@@ -26,6 +29,7 @@ public with sharing class BikeSelector {
             WHERE Id = :bikeId
             LIMIT 1
         ];
+
         return bikes.isEmpty() ? null : bikes[0];
     }
 }
