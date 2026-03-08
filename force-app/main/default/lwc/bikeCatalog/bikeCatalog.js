@@ -3,7 +3,6 @@ import getActiveBikes from '@salesforce/apex/BikeSelector.getActiveBikes';
 import getBikeById from '@salesforce/apex/BikeSelector.getById';
 
 export default class BikeCatalog extends LightningElement {
-
     bikes = []; // lista de bikes
     selectedBikeId = null; // guarda o Id da bike selecionada
     selectedBike = null; // guarda detalhes da bike selecionada
@@ -14,62 +13,65 @@ export default class BikeCatalog extends LightningElement {
     // carrega bikes do catálogo
     @wire(getActiveBikes, { limitSize: 50 })
     wiredBikes({ error, data }) {
-
         this.isLoading = false;
 
         if (data) {
-
             this.bikes = data.map(bike => ({
                 ...bike,
                 Image_URL_c__c: bike.Image_URL_c__c
                     ? String(bike.Image_URL_c__c).trim()
-                    : ''
+                    : '',
+                cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
             }));
 
             this.errorMessage = undefined;
-
         } else if (error) {
-
             this.bikes = [];
             this.errorMessage = 'Erro ao carregar bikes.';
             console.error(error);
-
         }
     }
 
     // executa quando o usuário clica em uma bike
     handleBikeClick(event) {
-
-        // pega o Id da bike clicada
         const bikeId = event.currentTarget.dataset.id;
 
-        // salva o Id
+        // salva o Id selecionado
         this.selectedBikeId = bikeId;
 
-        console.log('Bike selecionada:', bikeId);
+        // atualiza destaque visual
+        this.updateBikeCardClasses();
 
-        // busca detalhes da bike
+        // carrega detalhe da bike
         this.loadBikeDetails();
-
     }
 
-    // chama o Apex para buscar detalhe da bike
+    // chama Apex para buscar detalhe
     loadBikeDetails() {
-
         getBikeById({ bikeId: this.selectedBikeId })
             .then(result => {
-
-                // salva os detalhes da bike
                 this.selectedBike = result;
-
-                console.log('Detalhe da bike:', result);
-
             })
             .catch(error => {
-
                 console.error('Erro ao carregar detalhe:', error);
-
             });
+    }
+
+    // fecha painel de detalhe
+    handleCloseDetails() {
+        this.selectedBikeId = null;
+        this.selectedBike = null;
+
+        // remove destaque visual
+        this.updateBikeCardClasses();
+    }
+
+    // atualiza classe dos cards
+    updateBikeCardClasses() {
+        this.bikes = this.bikes.map(bike => ({
+            ...bike,
+            cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
+        }));
     }
 
     get hasBikes() {

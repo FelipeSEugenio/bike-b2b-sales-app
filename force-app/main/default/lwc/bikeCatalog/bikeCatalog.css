@@ -1,6 +1,21 @@
+.page-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.catalog-section {
+    min-width: 0;
+}
+
+.detail-section {
+    min-width: 0;
+}
+
 .catalog-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
     gap: 1rem;
 }
 
@@ -49,4 +64,111 @@
     font-size: 1rem;
     font-weight: 700;
     color: #0176d3;
+}
+
+.detail-card {
+    border: 1px solid #d8dde6;
+    border-radius: 1rem;
+    background: #ffffff;
+    padding: 1rem;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.detail-title {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #080707;
+}
+
+.detail-image-wrapper {
+    background: #f8f9fb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-image {
+    width: 100%;
+    height: 280px;
+    object-fit: contain;
+    display: block;
+}
+
+.detail-summary {
+    margin-bottom: 1rem;
+}
+
+.detail-bike-name {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #080707;
+}
+
+.detail-bike-type {
+    margin-bottom: 0.75rem;
+}
+
+.detail-bike-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0176d3;
+}
+
+.detail-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.detail-info-item {
+    background: #f8f9fb;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #5f6a7d;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+
+.detail-value {
+    font-size: 1rem;
+    color: #080707;
+}
+
+.detail-empty {
+    border: 1px dashed #c9c9c9;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #666;
+}
+
+@media (max-width: 900px) {
+    .page-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .catalog-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.bike-card.selected {
+    border: 2px solid #0176d3;
+    box-shadow: 0 0 14px rgba(1, 118, 211, 0.3);
+    transform: translateY(-2px);
 }
