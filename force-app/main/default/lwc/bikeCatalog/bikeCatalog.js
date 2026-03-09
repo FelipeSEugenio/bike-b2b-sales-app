@@ -36,24 +36,33 @@ export default class BikeCatalog extends LightningElement {
     handleBikeClick(event) {
         const bikeId = event.currentTarget.dataset.id;
 
-        // salva o Id selecionado
         this.selectedBikeId = bikeId;
-
-        // atualiza destaque visual
         this.updateBikeCardClasses();
-
-        // carrega detalhe da bike
         this.loadBikeDetails();
     }
 
     // chama Apex para buscar detalhe
     loadBikeDetails() {
+        this.isLoading = true;
+
         getBikeById({ bikeId: this.selectedBikeId })
             .then(result => {
-                this.selectedBike = result;
+                this.selectedBike = {
+                    ...result,
+                    Image_URL_c__c: result.Image_URL_c__c
+                        ? String(result.Image_URL_c__c).trim()
+                        : ''
+                };
+
+                this.errorMessage = undefined;
             })
             .catch(error => {
+                this.selectedBike = null;
+                this.errorMessage = 'Erro ao carregar detalhe da bike.';
                 console.error('Erro ao carregar detalhe:', error);
+            })
+            .finally(() => {
+                this.isLoading = false;
             });
     }
 
@@ -61,8 +70,6 @@ export default class BikeCatalog extends LightningElement {
     handleCloseDetails() {
         this.selectedBikeId = null;
         this.selectedBike = null;
-
-        // remove destaque visual
         this.updateBikeCardClasses();
     }
 

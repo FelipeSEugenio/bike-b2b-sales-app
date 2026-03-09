@@ -65,71 +65,63 @@
                 </div>
 
                 <!-- detalhe -->
-<div class="detail-section">
-    <template if:true={selectedBike}>
-        <div class="detail-card">
+                <div class="detail-section">
+                    <template if:true={selectedBike}>
+                        <div class="detail-card">
 
-            <!-- cabeçalho -->
-            <div class="detail-header">
-                <h2 class="detail-title">Bike Details</h2>
+                            <!-- cabeçalho -->
+                            <div class="detail-header">
+                                <h2 class="detail-title">Bike Details</h2>
 
-                <lightning-button
-                    label="Close"
-                    variant="neutral"
-                    onclick={handleCloseDetails}>
-                </lightning-button>
-            </div>
+                                <lightning-button
+                                    label="Close"
+                                    variant="neutral"
+                                    onclick={handleCloseDetails}>
+                                </lightning-button>
+                            </div>
 
-            <!-- imagem -->
-            <div class="detail-image-wrapper">
-                <img
-                    class="detail-image"
-                    src={selectedBike.Image_URL_c__c}
-                    alt={selectedBike.Name}
-                />
-            </div>
+                            <!-- imagem -->
+                            <div class="detail-image-wrapper">
+                                <img
+                                    class="detail-image"
+                                    src={selectedBike.Image_URL_c__c}
+                                    alt={selectedBike.Name}
+                                />
+                            </div>
 
-            <!-- nome e tipo -->
-            <div class="detail-summary">
-                <h3 class="detail-bike-name">{selectedBike.Name}</h3>
+                            <!-- nome e tipo -->
+                            <div class="detail-summary">
+                                <h3 class="detail-bike-name">{selectedBike.Name}</h3>
 
-                <div class="detail-bike-type">
-                    <lightning-badge label={selectedBike.Bike_Type__c}></lightning-badge>
-                </div>
+                                <div class="detail-bike-type">
+                                    <lightning-badge label={selectedBike.Bike_Type__c}></lightning-badge>
+                                </div>
 
-                <div class="detail-bike-price">
-                    <lightning-formatted-number
-                        value={selectedBike.Price__c}
-                        format-style="currency"
-                        currency-code="USD">
-                    </lightning-formatted-number>
-                </div>
-            </div>
+                                <div class="detail-bike-price">
+                                    <lightning-formatted-number
+                                        value={selectedBike.Price__c}
+                                        format-style="currency"
+                                        currency-code="USD">
+                                    </lightning-formatted-number>
+                                </div>
+                            </div>
 
-            <!-- infos técnicas -->
-            <div class="detail-info-grid">
-                <div class="detail-info-item">
-                    <span class="detail-label">SKU</span>
-                    <span class="detail-value">{selectedBike.SKU__c}</span>
-                </div>
+                            <!-- infos técnicas -->
+                            <div class="detail-info-grid">
+                                <div class="detail-info-item">
+                                    <span class="detail-label">SKU</span>
+                                    <span class="detail-value">{selectedBike.SKU__c}</span>
+                                </div>
 
-                <div class="detail-info-item">
-                    <span class="detail-label">Status</span>
-                    <span class="detail-value">{selectedBike.Status__c}</span>
-                </div>
-            </div>
+                                <div class="detail-info-item">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value">{selectedBike.Status__c}</span>
+                                </div>
+                            </div>
 
-        </div>
-    </template>
+                        </div>
+                    </template>
 
-    <template if:false={selectedBike}>
-        <div class="detail-empty">
-            Select a bike to view details.
-        </div>
-    </template>
-</div>
-
-                    <!-- mensagem inicial -->
                     <template if:false={selectedBike}>
                         <div class="detail-empty">
                             Select a bike to view details.
