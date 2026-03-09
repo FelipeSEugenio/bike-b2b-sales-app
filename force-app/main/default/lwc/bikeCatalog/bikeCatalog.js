@@ -21,16 +21,7 @@ export default class BikeCatalog extends LightningElement {
         this.isLoading = false;
 
         if (data) {
-            this.bikes = data.map(bike => ({
-                ...bike,
-                Image_URL_c__c: bike.Image_URL_c__c
-                    ? String(bike.Image_URL_c__c).trim()
-                    : '',
-                cardClass: this.selectedBikeId === bike.Id
-                    ? 'bike-card selected'
-                    : 'bike-card'
-            }));
-
+            this.bikes = data.map(bike => this.mapBikeData(bike));
             this.applyFilters();
             this.errorMessage = undefined;
         } else if (error) {
@@ -158,13 +149,7 @@ export default class BikeCatalog extends LightningElement {
 
         getBikeById({ bikeId: this.selectedBikeId })
             .then(result => {
-                this.selectedBike = {
-                    ...result,
-                    Image_URL_c__c: result.Image_URL_c__c
-                        ? String(result.Image_URL_c__c).trim()
-                        : ''
-                };
-
+                this.selectedBike = this.mapBikeData(result);
                 this.errorMessage = undefined;
             })
             .catch(error => {
@@ -199,6 +184,39 @@ export default class BikeCatalog extends LightningElement {
                 ? 'bike-card selected'
                 : 'bike-card'
         }));
+    }
+
+    // prepara dados visuais da bike
+    mapBikeData(bike) {
+        return {
+            ...bike,
+            Image_URL_c__c: bike.Image_URL_c__c
+                ? String(bike.Image_URL_c__c).trim()
+                : '',
+            statusClass: this.getStatusClass(bike.Status__c),
+            cardClass: this.selectedBikeId === bike.Id
+                ? 'bike-card selected'
+                : 'bike-card'
+        };
+    }
+
+    // define a classe visual do status
+    getStatusClass(status) {
+        const normalizedStatus = status ? status.toLowerCase() : '';
+
+        if (normalizedStatus === 'active') {
+            return 'status-badge status-active';
+        }
+
+        if (normalizedStatus === 'out of stock') {
+            return 'status-badge status-out';
+        }
+
+        if (normalizedStatus === 'discontinued') {
+            return 'status-badge status-discontinued';
+        }
+
+        return 'status-badge status-default';
     }
 
     get hasBikes() {
