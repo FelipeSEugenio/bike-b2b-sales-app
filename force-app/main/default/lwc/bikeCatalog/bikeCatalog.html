@@ -2,31 +2,35 @@
     <lightning-card title="Bike Catalog">
         <div class="slds-p-around_medium">
 
-            <!-- spinner enquanto carrega a lista -->
             <template if:true={isLoading}>
                 <lightning-spinner alternative-text="Carregando"></lightning-spinner>
             </template>
 
-            <!-- mensagem de erro -->
             <template if:true={errorMessage}>
                 <div class="slds-text-color_error">{errorMessage}</div>
             </template>
 
-            <!-- layout principal -->
             <div class="page-layout">
-
-                <!-- catálogo -->
                 <div class="catalog-section">
+                    <div class="catalog-toolbar">
+                        <lightning-input
+                            type="search"
+                            label="Search Bikes"
+                            placeholder="Search by name, type or SKU"
+                            value={searchTerm}
+                            onchange={handleSearchChange}>
+                        </lightning-input>
+                    </div>
+
                     <template if:true={hasBikes}>
                         <div class="catalog-grid">
-                            <template for:each={bikes} for:item="bike">
+                            <template for:each={filteredBikes} for:item="bike">
                                 <article
                                     key={bike.Id}
                                     class={bike.cardClass}
                                     data-id={bike.Id}
                                     onclick={handleBikeClick}
                                 >
-                                    <!-- imagem da bike -->
                                     <div class="bike-image-wrapper">
                                         <img
                                             class="bike-image"
@@ -35,7 +39,6 @@
                                         />
                                     </div>
 
-                                    <!-- conteúdo da bike -->
                                     <div class="bike-content">
                                         <h3 class="bike-name">{bike.Name}</h3>
 
@@ -56,20 +59,18 @@
                         </div>
                     </template>
 
-                    <!-- sem bikes -->
                     <template if:false={hasBikes}>
                         <template if:false={isLoading}>
-                            <div>Nenhuma bike ativa encontrada.</div>
+                            <div class="empty-state">
+                                Nenhuma bike encontrada.
+                            </div>
                         </template>
                     </template>
                 </div>
 
-                <!-- detalhe -->
                 <div class="detail-section">
                     <template if:true={selectedBike}>
                         <div class="detail-card">
-
-                            <!-- cabeçalho -->
                             <div class="detail-header">
                                 <h2 class="detail-title">Bike Details</h2>
 
@@ -80,7 +81,6 @@
                                 </lightning-button>
                             </div>
 
-                            <!-- imagem -->
                             <div class="detail-image-wrapper">
                                 <img
                                     class="detail-image"
@@ -89,7 +89,6 @@
                                 />
                             </div>
 
-                            <!-- nome e tipo -->
                             <div class="detail-summary">
                                 <h3 class="detail-bike-name">{selectedBike.Name}</h3>
 
@@ -106,7 +105,6 @@
                                 </div>
                             </div>
 
-                            <!-- infos técnicas -->
                             <div class="detail-info-grid">
                                 <div class="detail-info-item">
                                     <span class="detail-label">SKU</span>
@@ -118,7 +116,6 @@
                                     <span class="detail-value">{selectedBike.Status__c}</span>
                                 </div>
                             </div>
-
                         </div>
                     </template>
 
@@ -128,8 +125,8 @@
                         </div>
                     </template>
                 </div>
-
             </div>
+
         </div>
     </lightning-card>
 </template>

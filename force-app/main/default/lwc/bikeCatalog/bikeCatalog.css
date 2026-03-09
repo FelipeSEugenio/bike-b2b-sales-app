@@ -172,3 +172,10 @@
     box-shadow: 0 0 14px rgba(1, 118, 211, 0.3);
     transform: translateY(-2px);
 }
+.catalog-toolbar {
+    margin-bottom: 1rem;
+}
+
+.empty-state {
+    padding: 1rem;
+}

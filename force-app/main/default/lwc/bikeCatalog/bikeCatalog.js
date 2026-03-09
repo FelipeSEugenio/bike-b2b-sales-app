@@ -3,9 +3,12 @@ import getActiveBikes from '@salesforce/apex/BikeSelector.getActiveBikes';
 import getBikeById from '@salesforce/apex/BikeSelector.getById';
 
 export default class BikeCatalog extends LightningElement {
-    bikes = []; // lista de bikes
+    bikes = []; // lista original
+    filteredBikes = []; // lista exibida
     selectedBikeId = null; // guarda o Id da bike selecionada
     selectedBike = null; // guarda detalhes da bike selecionada
+
+    searchTerm = ''; // texto da busca
 
     isLoading = true;
     errorMessage;
@@ -24,12 +27,46 @@ export default class BikeCatalog extends LightningElement {
                 cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
             }));
 
+            this.applyFilters();
             this.errorMessage = undefined;
         } else if (error) {
             this.bikes = [];
+            this.filteredBikes = [];
             this.errorMessage = 'Erro ao carregar bikes.';
             console.error(error);
         }
+    }
+
+    // executa quando o usuário digita na busca
+    handleSearchChange(event) {
+        this.searchTerm = event.target.value;
+        this.applyFilters();
+    }
+
+    // aplica filtro de busca
+    applyFilters() {
+        const term = this.searchTerm ? this.searchTerm.toLowerCase().trim() : '';
+
+        let result = [...this.bikes];
+
+        if (term) {
+            result = result.filter(bike => {
+                const name = bike.Name ? bike.Name.toLowerCase() : '';
+                const type = bike.Bike_Type__c ? bike.Bike_Type__c.toLowerCase() : '';
+                const sku = bike.SKU__c ? bike.SKU__c.toLowerCase() : '';
+
+                return (
+                    name.includes(term) ||
+                    type.includes(term) ||
+                    sku.includes(term)
+                );
+            });
+        }
+
+        this.filteredBikes = result.map(bike => ({
+            ...bike,
+            cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
+        }));
     }
 
     // executa quando o usuário clica em uma bike
@@ -79,9 +116,14 @@ export default class BikeCatalog extends LightningElement {
             ...bike,
             cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
         }));
+
+        this.filteredBikes = this.filteredBikes.map(bike => ({
+            ...bike,
+            cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
+        }));
     }
 
     get hasBikes() {
-        return this.bikes && this.bikes.length > 0;
+        return this.filteredBikes && this.filteredBikes.length > 0;
     }
 }
