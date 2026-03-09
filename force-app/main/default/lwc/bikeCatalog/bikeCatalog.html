@@ -26,6 +26,17 @@
                             </lightning-input>
                         </div>
 
+                        <div class="filter-bar">
+                            <lightning-combobox
+                                variant="label-hidden"
+                                label="Filter by Type"
+                                value={selectedType}
+                                options={typeOptions}
+                                onchange={handleTypeChange}
+                                placeholder="Filter by type">
+                            </lightning-combobox>
+                        </div>
+
                         <div class="results-info">
                             {filteredBikes.length} bikes found
                         </div>

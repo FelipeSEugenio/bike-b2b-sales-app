@@ -210,3 +210,17 @@
     color: #666;
     background: #fafafa;
 }
+.filter-bar {
+    width: 220px;
+    background: #ffffff;
+    border: 1px solid #d8dde6;
+    border-radius: 0.75rem;
+    padding: 0.2rem 0.4rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.detail-empty {
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -5,15 +5,16 @@ import getBikeById from '@salesforce/apex/BikeSelector.getById';
 export default class BikeCatalog extends LightningElement {
     bikes = []; // lista original
     filteredBikes = []; // lista exibida
-    selectedBikeId = null; // guarda o Id da bike selecionada
-    selectedBike = null; // guarda detalhes da bike selecionada
+    selectedBikeId = null; // id selecionado
+    selectedBike = null; // detalhe selecionado
 
     searchTerm = ''; // texto da busca
+    selectedType = 'all'; // tipo selecionado
 
     isLoading = true;
     errorMessage;
 
-    // carrega bikes do catálogo
+    // carrega bikes
     @wire(getActiveBikes, { limitSize: 50 })
     wiredBikes({ error, data }) {
         this.isLoading = false;
@@ -24,7 +25,9 @@ export default class BikeCatalog extends LightningElement {
                 Image_URL_c__c: bike.Image_URL_c__c
                     ? String(bike.Image_URL_c__c).trim()
                     : '',
-                cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
+                cardClass: this.selectedBikeId === bike.Id
+                    ? 'bike-card selected'
+                    : 'bike-card'
             }));
 
             this.applyFilters();
@@ -37,15 +40,43 @@ export default class BikeCatalog extends LightningElement {
         }
     }
 
-    // executa quando o usuário digita na busca
+    // opções do filtro de tipo
+    get typeOptions() {
+        const uniqueTypes = [
+            ...new Set(
+                this.bikes
+                    .map(bike => bike.Bike_Type__c)
+                    .filter(type => type)
+            )
+        ].sort();
+
+        const options = uniqueTypes.map(type => ({
+            label: type,
+            value: type
+        }));
+
+        return [
+            { label: 'All Types', value: 'all' },
+            ...options
+        ];
+    }
+
+    // busca
     handleSearchChange(event) {
         this.searchTerm = event.target.value;
         this.applyFilters();
     }
 
-    // aplica filtro de busca
+    // filtro por tipo
+    handleTypeChange(event) {
+        this.selectedType = event.detail.value;
+        this.applyFilters();
+    }
+
+    // aplica busca + filtro
     applyFilters() {
         const term = this.searchTerm ? this.searchTerm.toLowerCase().trim() : '';
+        const typeFilter = this.selectedType;
 
         let result = [...this.bikes];
 
@@ -63,13 +94,19 @@ export default class BikeCatalog extends LightningElement {
             });
         }
 
+        if (typeFilter !== 'all') {
+            result = result.filter(bike => bike.Bike_Type__c === typeFilter);
+        }
+
         this.filteredBikes = result.map(bike => ({
             ...bike,
-            cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
+            cardClass: this.selectedBikeId === bike.Id
+                ? 'bike-card selected'
+                : 'bike-card'
         }));
     }
 
-    // executa quando o usuário clica em uma bike
+    // clique no card
     handleBikeClick(event) {
         const bikeId = event.currentTarget.dataset.id;
 
@@ -78,7 +115,7 @@ export default class BikeCatalog extends LightningElement {
         this.loadBikeDetails();
     }
 
-    // chama Apex para buscar detalhe
+    // carrega detalhe
     loadBikeDetails() {
         this.isLoading = true;
 
@@ -103,23 +140,27 @@ export default class BikeCatalog extends LightningElement {
             });
     }
 
-    // fecha painel de detalhe
+    // fecha detalhe
     handleCloseDetails() {
         this.selectedBikeId = null;
         this.selectedBike = null;
         this.updateBikeCardClasses();
     }
 
-    // atualiza classe dos cards
+    // atualiza destaque visual
     updateBikeCardClasses() {
         this.bikes = this.bikes.map(bike => ({
             ...bike,
-            cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
+            cardClass: this.selectedBikeId === bike.Id
+                ? 'bike-card selected'
+                : 'bike-card'
         }));
 
         this.filteredBikes = this.filteredBikes.map(bike => ({
             ...bike,
-            cardClass: this.selectedBikeId === bike.Id ? 'bike-card selected' : 'bike-card'
+            cardClass: this.selectedBikeId === bike.Id
+                ? 'bike-card selected'
+                : 'bike-card'
         }));
     }
 
