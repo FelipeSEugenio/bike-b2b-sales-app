@@ -37,6 +37,17 @@
                             </lightning-combobox>
                         </div>
 
+                        <div class="sort-bar">
+                            <lightning-combobox
+                                variant="label-hidden"
+                                label="Sort Bikes"
+                                value={sortBy}
+                                options={sortOptions}
+                                onchange={handleSortChange}
+                                placeholder="Sort bikes">
+                            </lightning-combobox>
+                        </div>
+
                         <div class="results-info">
                             {filteredBikes.length} bikes found
                         </div>

@@ -10,6 +10,7 @@ export default class BikeCatalog extends LightningElement {
 
     searchTerm = ''; // texto da busca
     selectedType = 'all'; // tipo selecionado
+    sortBy = 'priceAsc'; // ordenação selecionada
 
     isLoading = true;
     errorMessage;
@@ -61,6 +62,15 @@ export default class BikeCatalog extends LightningElement {
         ];
     }
 
+    // opções de ordenação
+    get sortOptions() {
+        return [
+            { label: 'Price: Low to High', value: 'priceAsc' },
+            { label: 'Price: High to Low', value: 'priceDesc' },
+            { label: 'Name: A to Z', value: 'nameAsc' }
+        ];
+    }
+
     // busca
     handleSearchChange(event) {
         this.searchTerm = event.target.value;
@@ -73,13 +83,20 @@ export default class BikeCatalog extends LightningElement {
         this.applyFilters();
     }
 
-    // aplica busca + filtro
+    // ordenação
+    handleSortChange(event) {
+        this.sortBy = event.detail.value;
+        this.applyFilters();
+    }
+
+    // aplica busca + filtro + ordenação
     applyFilters() {
         const term = this.searchTerm ? this.searchTerm.toLowerCase().trim() : '';
         const typeFilter = this.selectedType;
 
         let result = [...this.bikes];
 
+        // busca
         if (term) {
             result = result.filter(bike => {
                 const name = bike.Name ? bike.Name.toLowerCase() : '';
@@ -94,9 +111,29 @@ export default class BikeCatalog extends LightningElement {
             });
         }
 
+        // filtro por tipo
         if (typeFilter !== 'all') {
             result = result.filter(bike => bike.Bike_Type__c === typeFilter);
         }
+
+        // ordenação
+        result.sort((a, b) => {
+            if (this.sortBy === 'priceAsc') {
+                return (a.Price__c || 0) - (b.Price__c || 0);
+            }
+
+            if (this.sortBy === 'priceDesc') {
+                return (b.Price__c || 0) - (a.Price__c || 0);
+            }
+
+            if (this.sortBy === 'nameAsc') {
+                const nameA = a.Name ? a.Name.toLowerCase() : '';
+                const nameB = b.Name ? b.Name.toLowerCase() : '';
+                return nameA.localeCompare(nameB);
+            }
+
+            return 0;
+        });
 
         this.filteredBikes = result.map(bike => ({
             ...bike,
