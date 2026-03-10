@@ -1,0 +1,75 @@
+<template>
+  <div class="quote-builder">
+    <h3 class="quote-title">Quick Quote</h3>
+
+    <div class="quote-block">
+      <lightning-record-picker
+        label="Account"
+        object-api-name="Account"
+        placeholder="Select an account"
+        onchange={handleAccountChange}
+        disabled={hasQuote}
+      >
+      </lightning-record-picker>
+
+      <lightning-button
+        class="quote-button"
+        label="Create Draft Quote"
+        variant="brand"
+        onclick={handleCreateDraftQuote}
+        disabled={isCreateQuoteDisabled}
+      >
+      </lightning-button>
+    </div>
+
+    <template if:true={hasQuote}>
+      <div class="quote-status-row">
+        <span class="quote-status-badge">{quoteLabel}</span>
+      </div>
+
+      <div class="quote-block quote-item-block">
+        <div class="quote-bike-name">Selected Bike: {bikeName}</div>
+
+        <div class="quote-fields-row">
+          <lightning-input
+            type="number"
+            min="1"
+            label="Quantity"
+            value={quantity}
+            onchange={handleQuantityChange}
+          >
+          </lightning-input>
+
+          <lightning-input
+            type="number"
+            min="0"
+            step="0.01"
+            label="Unit Price"
+            value={unitPrice}
+            onchange={handleUnitPriceChange}
+          >
+          </lightning-input>
+        </div>
+
+        <lightning-button
+          class="quote-button"
+          label="Add Selected Bike"
+          variant="neutral"
+          onclick={handleAddSelectedBike}
+          disabled={isAddItemDisabled}
+        >
+        </lightning-button>
+      </div>
+
+      <div class="quote-total-row">
+        <span class="quote-total-label">Current Quote Total</span>
+        <lightning-formatted-number
+          value={quoteTotal}
+          format-style="currency"
+          currency-code="USD"
+        >
+        </lightning-formatted-number>
+      </div>
+    </template>
+  </div>
+</template>
