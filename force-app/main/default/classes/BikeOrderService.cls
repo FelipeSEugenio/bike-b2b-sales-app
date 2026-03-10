@@ -57,11 +57,20 @@ public with sharing class BikeOrderService {
 
     // Busca dados principais da quote para montar o pedido
     Bike_Quote__c quote = [
-      SELECT Id, Name, Account__c
+      SELECT Id, Name, Account__c, Converted_Order__c
       FROM Bike_Quote__c
       WHERE Id = :quoteId
       LIMIT 1
     ];
+
+    // Bloqueia conversão repetida da mesma quote
+    if (quote.Converted_Order__c != null) {
+      throw new BikeOrderServiceException(
+        'Esta quote já foi convertida para o pedido ' +
+          quote.Converted_Order__c +
+          '.'
+      );
+    }
 
     if (quote.Account__c == null) {
       throw new BikeOrderServiceException(
@@ -164,6 +173,10 @@ public with sharing class BikeOrderService {
     // Recalcula status de estoque e salva bikes com quantidade atualizada
     BikeService.applyStockStatus(bikesToUpdate);
     update bikesToUpdate;
+
+    // Salva referência do pedido criado na quote para evitar duplicidade
+    quote.Converted_Order__c = order.Id;
+    update quote;
 
     // Retorna Id do pedido criado para uso futuro na UI/API
     return order.Id;

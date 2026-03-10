@@ -97,6 +97,15 @@ private class BikeOrderServiceTest {
     System.assertEquals(acc.Id, createdOrder.Customer_Account__c);
     System.assertEquals(850, createdOrder.Total_Amount__c);
 
+    // Valida referência do pedido salvo na quote convertida
+    quote = [
+      SELECT Converted_Order__c
+      FROM Bike_Quote__c
+      WHERE Id = :quote.Id
+      LIMIT 1
+    ];
+    System.assertEquals(orderId, quote.Converted_Order__c);
+
     // Valida cópia dos itens
     Integer itemCount = [
       SELECT COUNT()
@@ -175,5 +184,64 @@ private class BikeOrderServiceTest {
     ];
     System.assertEquals(1, bike.Stock_Quantity__c);
     System.assertEquals('Low Stock', bike.Stock_Status__c);
+  }
+
+  // Impede converter a mesma quote mais de uma vez
+  @IsTest
+  static void deveBloquearConversaoDuplicadaDaMesmaQuote() {
+    Account acc = new Account(Name = 'Conta Conversao Duplicada');
+    insert acc;
+
+    Bike__c bike = new Bike__c(
+      Name = 'Bike Conversao Duplicada',
+      SKU__c = 'CONV-DUP-01',
+      Price__c = 500,
+      Bike_Type__c = 'Mountain',
+      Status__c = 'Active',
+      Stock_Quantity__c = 5
+    );
+    insert bike;
+
+    Bike_Quote__c quote = new Bike_Quote__c(
+      Name = 'Quote Conversao Duplicada',
+      Account__c = acc.Id,
+      Status__c = 'Draft'
+    );
+    insert quote;
+
+    insert new Bike_Quote_Item__c(
+      Bike_Quote__c = quote.Id,
+      Bike__c = bike.Id,
+      Quantity__c = 1,
+      Unit_Price__c = 500
+    );
+
+    Test.startTest();
+    Id firstOrderId = BikeOrderService.convertQuoteToOrder(quote.Id);
+
+    try {
+      BikeOrderService.convertQuoteToOrder(quote.Id);
+      System.assert(false, 'Segunda conversão deveria falhar.');
+    } catch (Exception e) {
+      System.assert(e.getMessage().contains('já foi convertida'));
+    }
+    Test.stopTest();
+
+    // Garante que apenas um pedido foi criado a partir da quote
+    Integer orderCount = [
+      SELECT COUNT()
+      FROM Bike_Order__c
+      WHERE Customer_Account__c = :acc.Id
+    ];
+    System.assertEquals(1, orderCount);
+
+    // Garante que referência na quote aponta para o primeiro pedido
+    quote = [
+      SELECT Converted_Order__c
+      FROM Bike_Quote__c
+      WHERE Id = :quote.Id
+      LIMIT 1
+    ];
+    System.assertEquals(firstOrderId, quote.Converted_Order__c);
   }
 }

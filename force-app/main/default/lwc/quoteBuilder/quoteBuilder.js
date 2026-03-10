@@ -10,6 +10,7 @@ import {
 
 import BIKE_QUOTE_OBJECT from "@salesforce/schema/Bike_Quote__c";
 import BIKE_QUOTE_ACCOUNT_FIELD from "@salesforce/schema/Bike_Quote__c.Account__c";
+import BIKE_QUOTE_CONVERTED_ORDER_FIELD from "@salesforce/schema/Bike_Quote__c.Converted_Order__c";
 import BIKE_QUOTE_STATUS_FIELD from "@salesforce/schema/Bike_Quote__c.Status__c";
 import BIKE_QUOTE_TOTAL_FIELD from "@salesforce/schema/Bike_Quote__c.Total_Amount__c";
 
@@ -20,7 +21,11 @@ import BIKE_QUOTE_ITEM_QTY_FIELD from "@salesforce/schema/Bike_Quote_Item__c.Qua
 import BIKE_QUOTE_ITEM_UNIT_PRICE_FIELD from "@salesforce/schema/Bike_Quote_Item__c.Unit_Price__c";
 import convertQuoteToOrder from "@salesforce/apex/BikeOrderService.convertQuoteToOrder";
 
-const QUOTE_FIELDS = [BIKE_QUOTE_TOTAL_FIELD, BIKE_QUOTE_STATUS_FIELD];
+const QUOTE_FIELDS = [
+  BIKE_QUOTE_TOTAL_FIELD,
+  BIKE_QUOTE_STATUS_FIELD,
+  BIKE_QUOTE_CONVERTED_ORDER_FIELD
+];
 
 // Componente para criar quote rápida a partir da bike selecionada
 export default class QuoteBuilder extends LightningElement {
@@ -101,7 +106,7 @@ export default class QuoteBuilder extends LightningElement {
 
   // Permite converter apenas quando existe quote no fluxo atual
   get canConvertToOrder() {
-    return this.hasQuote && !this.isConvertingOrder;
+    return this.hasQuote && !this.isConvertingOrder && !this.convertedOrderId;
   }
 
   get isCreateQuoteDisabled() {
@@ -133,9 +138,18 @@ export default class QuoteBuilder extends LightningElement {
   }
 
   // Exibe referência do pedido criado após conversão
+  get convertedOrderId() {
+    return (
+      this.createdOrderId ||
+      getFieldValue(this.wiredQuote.data, BIKE_QUOTE_CONVERTED_ORDER_FIELD) ||
+      null
+    );
+  }
+
+  // Exibe referência do pedido criado após conversão
   get orderLabel() {
-    if (!this.createdOrderId) return "";
-    return `Order Reference: ${this.createdOrderId}`;
+    if (!this.convertedOrderId) return "";
+    return `Order Reference: ${this.convertedOrderId}`;
   }
 
   // Captura conta selecionada para vincular na quote
@@ -184,6 +198,8 @@ export default class QuoteBuilder extends LightningElement {
       const result = await createRecord(recordInput);
       // Guarda referência da quote criada para próximos itens
       this.quoteId = result.id;
+      // Limpa referência anterior de pedido ao iniciar nova quote
+      this.createdOrderId = null;
 
       this.dispatchEvent(
         new ShowToastEvent({
@@ -267,6 +283,14 @@ export default class QuoteBuilder extends LightningElement {
   async handleConvertToOrder() {
     if (!this.quoteId) {
       this.showError("Create a quote first.");
+      return;
+    }
+
+    // Evita nova conversão quando já existe pedido gerado para a quote
+    if (this.convertedOrderId) {
+      this.showError(
+        `This quote was already converted to order ${this.convertedOrderId}.`
+      );
       return;
     }
 
