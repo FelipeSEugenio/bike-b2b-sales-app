@@ -1,5 +1,6 @@
 @IsTest
 private class BikeQuoteServiceTest {
+  // Valida subtotal do item e total da quote no insert
   @IsTest
   static void shouldCalculateQuoteItemSubtotalAndTotal() {
     Bike_Quote__c quote = new Bike_Quote__c(
@@ -34,6 +35,7 @@ private class BikeQuoteServiceTest {
     System.assertEquals(1350, quote.Total_Amount__c);
   }
 
+  // Valida recálculo do total após exclusão de item
   @IsTest
   static void shouldRecalculateQuoteTotalOnDelete() {
     Bike_Quote__c quote = new Bike_Quote__c(
@@ -68,6 +70,7 @@ private class BikeQuoteServiceTest {
     System.assertEquals(200, quote.Total_Amount__c);
   }
 
+  // Garante default de status no objeto de quote
   @IsTest
   static void shouldUseDraftAsDefaultStatus() {
     Bike_Quote__c quote = new Bike_Quote__c(Name = 'Quote Default Status');
@@ -83,6 +86,7 @@ private class BikeQuoteServiceTest {
     System.assertEquals('Draft', quote.Status__c);
   }
 
+  // Garante quantidade padrão quando valor não é informado
   @IsTest
   static void shouldApplyQuantityDefaultWhenMissing() {
     Bike_Quote__c quote = new Bike_Quote__c(Name = 'Quote Default Quantity');
@@ -105,6 +109,7 @@ private class BikeQuoteServiceTest {
     System.assertEquals(99, item.Subtotal__c);
   }
 
+  // Impede salvar item com quantidade inválida e preço negativo
   @IsTest
   static void shouldBlockInvalidQuantityAndNegativeUnitPrice() {
     Bike_Quote__c quote = new Bike_Quote__c(Name = 'Quote Invalid Item');

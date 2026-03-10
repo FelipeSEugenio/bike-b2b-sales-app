@@ -20,6 +20,7 @@ import BIKE_QUOTE_ITEM_UNIT_PRICE_FIELD from "@salesforce/schema/Bike_Quote_Item
 
 const QUOTE_FIELDS = [BIKE_QUOTE_TOTAL_FIELD];
 
+// Componente para criar quote rápida a partir da bike selecionada
 export default class QuoteBuilder extends LightningElement {
   _bikeId;
   @api
@@ -27,6 +28,7 @@ export default class QuoteBuilder extends LightningElement {
     return this._bikeId;
   }
 
+  // Reage à troca de bike e prepara preço padrão
   set bikeId(value) {
     const hasChanged = this._bikeId !== value;
     this._bikeId = value;
@@ -48,6 +50,7 @@ export default class QuoteBuilder extends LightningElement {
     return this._defaultUnitPrice;
   }
 
+  // Mantém preço unitário sincronizado enquanto usuário não editar manualmente
   set defaultUnitPrice(value) {
     this._defaultUnitPrice = value != null ? Number(value) : 0;
 
@@ -68,6 +71,7 @@ export default class QuoteBuilder extends LightningElement {
   @wire(getRecord, { recordId: "$quoteId", fields: QUOTE_FIELDS })
   wiredQuote;
 
+  // Indica se já existe quote criada no fluxo atual
   get hasQuote() {
     return Boolean(this.quoteId);
   }
@@ -108,25 +112,30 @@ export default class QuoteBuilder extends LightningElement {
     return `Quote Reference: ${this.quoteId}`;
   }
 
+  // Captura conta selecionada para vincular na quote
   handleAccountChange(event) {
     this.accountId = event.detail.recordId;
   }
 
+  // Atualiza quantidade do item da quote
   handleQuantityChange(event) {
     this.quantity = Number(event.target.value);
   }
 
+  // Atualiza preço unitário informado no formulário
   handleUnitPriceChange(event) {
     this.hasEditedUnitPrice = true;
     this.unitPrice = Number(event.target.value);
   }
 
+  // Cria uma quote em status Draft para a conta selecionada
   async handleCreateDraftQuote() {
     if (!this.accountId) {
       this.showError("Select an account before creating a quote.");
       return;
     }
 
+    // Bloqueia criação quando bike está indisponível
     if (this.isBikeOutOfStock) {
       this.showError("Cannot create a quote for an out-of-stock bike.");
       return;
@@ -135,6 +144,7 @@ export default class QuoteBuilder extends LightningElement {
     this.isSavingQuote = true;
 
     try {
+      // Monta campos mínimos para criação da quote
       const fields = {};
       fields.Name = `Draft Quote ${Date.now()}`;
       fields[BIKE_QUOTE_ACCOUNT_FIELD.fieldApiName] = this.accountId;
@@ -146,6 +156,7 @@ export default class QuoteBuilder extends LightningElement {
       };
 
       const result = await createRecord(recordInput);
+      // Guarda referência da quote criada para próximos itens
       this.quoteId = result.id;
 
       this.dispatchEvent(
@@ -162,6 +173,7 @@ export default class QuoteBuilder extends LightningElement {
     }
   }
 
+  // Adiciona a bike selecionada como item da quote atual
   async handleAddSelectedBike() {
     if (!this.quoteId) {
       this.showError("Create a quote first.");
@@ -176,6 +188,7 @@ export default class QuoteBuilder extends LightningElement {
     this.isAddingItem = true;
 
     try {
+      // Monta payload do item com quote, bike, quantidade e preço
       const fields = {};
       fields[BIKE_QUOTE_ITEM_QUOTE_FIELD.fieldApiName] = this.quoteId;
       fields[BIKE_QUOTE_ITEM_BIKE_FIELD.fieldApiName] = this.bikeId;
@@ -190,6 +203,7 @@ export default class QuoteBuilder extends LightningElement {
       };
 
       await createRecord(recordInput);
+      // Força atualização do total exibido após inserir item
       await notifyRecordUpdateAvailable([{ recordId: this.quoteId }]);
 
       this.dispatchEvent(
@@ -206,6 +220,7 @@ export default class QuoteBuilder extends LightningElement {
     }
   }
 
+  // Exibe toast de erro padronizado
   showError(message) {
     this.dispatchEvent(
       new ShowToastEvent({
@@ -216,6 +231,7 @@ export default class QuoteBuilder extends LightningElement {
     );
   }
 
+  // Extrai mensagem amigável de erro do Lightning Data Service
   getErrorMessage(error) {
     if (error?.body?.message) {
       return error.body.message;
