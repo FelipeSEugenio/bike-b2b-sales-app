@@ -1,174 +1,209 @@
 <template>
-    <lightning-card title="Bike Catalog">
-        <div class="slds-p-around_medium">
+  <lightning-card title="Bike Catalog">
+    <div class="slds-p-around_medium">
+      <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Carregando"></lightning-spinner>
+      </template>
 
-            <template if:true={isLoading}>
-                <lightning-spinner alternative-text="Carregando"></lightning-spinner>
-            </template>
+      <template if:true={errorMessage}>
+        <div class="slds-text-color_error">{errorMessage}</div>
+      </template>
 
-            <template if:true={errorMessage}>
-                <div class="slds-text-color_error">{errorMessage}</div>
-            </template>
-
-            <div class="page-layout">
-                <div class="catalog-section">
-
-                    <!-- toolbar -->
-                    <div class="catalog-toolbar">
-                        <div class="search-bar">
-                            <lightning-input
-                                type="search"
-                                variant="label-hidden"
-                                label="Search Bikes"
-                                placeholder="Search bikes by name, type or SKU"
-                                value={searchTerm}
-                                onchange={handleSearchChange}>
-                            </lightning-input>
-                        </div>
-
-                        <div class="filter-bar">
-                            <lightning-combobox
-                                variant="label-hidden"
-                                label="Filter by Type"
-                                value={selectedType}
-                                options={typeOptions}
-                                onchange={handleTypeChange}
-                                placeholder="Filter by type">
-                            </lightning-combobox>
-                        </div>
-
-                        <div class="sort-bar">
-                            <lightning-combobox
-                                variant="label-hidden"
-                                label="Sort Bikes"
-                                value={sortBy}
-                                options={sortOptions}
-                                onchange={handleSortChange}
-                                placeholder="Sort bikes">
-                            </lightning-combobox>
-                        </div>
-
-                        <div class="results-info">
-                            {filteredBikes.length} bikes found
-                        </div>
-                    </div>
-
-                    <!-- lista -->
-                    <template if:true={hasBikes}>
-                        <div class="catalog-grid">
-                            <template for:each={filteredBikes} for:item="bike">
-                                <article
-                                    key={bike.Id}
-                                    class={bike.cardClass}
-                                    data-id={bike.Id}
-                                    onclick={handleBikeClick}
-                                >
-                                    <div class="bike-image-wrapper">
-                                        <img
-                                            class="bike-image"
-                                            src={bike.Image_URL_c__c}
-                                            alt={bike.Name}
-                                        />
-                                    </div>
-
-                                    <div class="bike-content">
-                                        <div class="bike-card-header">
-                                            <h3 class="bike-name">{bike.Name}</h3>
-                                            <span class={bike.statusClass}>{bike.Status__c}</span>
-                                        </div>
-
-                                        <div class="bike-type">
-                                            <lightning-badge label={bike.Bike_Type__c}></lightning-badge>
-                                        </div>
-
-                                        <div class="bike-price">
-                                            <lightning-formatted-number
-                                                value={bike.Price__c}
-                                                format-style="currency"
-                                                currency-code="USD">
-                                            </lightning-formatted-number>
-                                        </div>
-                                    </div>
-                                </article>
-                            </template>
-                        </div>
-                    </template>
-
-                    <!-- vazio -->
-                    <template if:false={hasBikes}>
-                        <template if:false={isLoading}>
-                            <div class="empty-state">
-                                Nenhuma bike encontrada.
-                            </div>
-                        </template>
-                    </template>
-                </div>
-
-                <!-- detalhe -->
-                <div class="detail-section">
-                    <template if:true={selectedBike}>
-                        <div class="detail-card">
-                            <div class="detail-header">
-                                <h2 class="detail-title">Bike Details</h2>
-
-                                <lightning-button
-                                    label="Close"
-                                    variant="neutral"
-                                    onclick={handleCloseDetails}>
-                                </lightning-button>
-                            </div>
-
-                            <div class="detail-image-wrapper">
-                                <img
-                                    class="detail-image"
-                                    src={selectedBike.Image_URL_c__c}
-                                    alt={selectedBike.Name}
-                                />
-                            </div>
-
-                            <div class="detail-summary">
-                                <h3 class="detail-bike-name">{selectedBike.Name}</h3>
-
-                                <div class="detail-bike-type">
-                                    <lightning-badge label={selectedBike.Bike_Type__c}></lightning-badge>
-                                </div>
-
-                                <div class="detail-bike-price">
-                                    <lightning-formatted-number
-                                        value={selectedBike.Price__c}
-                                        format-style="currency"
-                                        currency-code="USD">
-                                    </lightning-formatted-number>
-                                </div>
-
-                                <div class="detail-status-row">
-                                    <span class="detail-label-inline">Status:</span>
-                                    <span class={selectedBike.statusClass}>{selectedBike.Status__c}</span>
-                                </div>
-                            </div>
-
-                            <div class="detail-info-grid">
-                                <div class="detail-info-item">
-                                    <span class="detail-label">SKU</span>
-                                    <span class="detail-value">{selectedBike.SKU__c}</span>
-                                </div>
-
-                                <div class="detail-info-item">
-                                    <span class="detail-label">Status</span>
-                                    <span class="detail-value">{selectedBike.Status__c}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <template if:false={selectedBike}>
-                        <div class="detail-empty">
-                            <span>Select a bike to view details.</span>
-                        </div>
-                    </template>
-                </div>
+      <div class="page-layout">
+        <div class="catalog-section">
+          <!-- toolbar -->
+          <div class="catalog-toolbar">
+            <div class="search-bar">
+              <lightning-input
+                type="search"
+                variant="label-hidden"
+                label="Search Bikes"
+                placeholder="Search bikes by name, type or SKU"
+                value={searchTerm}
+                onchange={handleSearchChange}
+              >
+              </lightning-input>
             </div>
 
+            <div class="filter-bar">
+              <lightning-combobox
+                variant="label-hidden"
+                label="Filter by Type"
+                value={selectedType}
+                options={typeOptions}
+                onchange={handleTypeChange}
+                placeholder="Filter by type"
+              >
+              </lightning-combobox>
+            </div>
+
+            <div class="sort-bar">
+              <lightning-combobox
+                variant="label-hidden"
+                label="Sort Bikes"
+                value={sortBy}
+                options={sortOptions}
+                onchange={handleSortChange}
+                placeholder="Sort bikes"
+              >
+              </lightning-combobox>
+            </div>
+
+            <div class="results-info">{filteredBikes.length} bikes found</div>
+          </div>
+
+          <!-- lista -->
+          <template if:true={hasBikes}>
+            <div class="catalog-grid">
+              <template for:each={filteredBikes} for:item="bike">
+                <article
+                  key={bike.Id}
+                  class={bike.cardClass}
+                  data-id={bike.Id}
+                  onclick={handleBikeClick}
+                >
+                  <div class="bike-image-wrapper">
+                    <img
+                      class="bike-image"
+                      src={bike.Image_URL_c__c}
+                      alt={bike.Name}
+                    />
+                  </div>
+
+                  <div class="bike-content">
+                    <div class="bike-card-header">
+                      <h3 class="bike-name">{bike.Name}</h3>
+                      <span class={bike.statusClass}>{bike.Status__c}</span>
+                    </div>
+
+                    <div class="bike-type">
+                      <lightning-badge
+                        label={bike.Bike_Type__c}
+                      ></lightning-badge>
+                    </div>
+
+                    <div class="bike-stock-row">
+                      <span class={bike.stockStatusClass}
+                        >{bike.Stock_Status__c}</span
+                      >
+                      <template if:true={bike.isOutOfStock}>
+                        <span class="bike-unavailable-label">Unavailable</span>
+                      </template>
+                    </div>
+
+                    <div class="bike-price">
+                      <lightning-formatted-number
+                        value={bike.Price__c}
+                        format-style="currency"
+                        currency-code="USD"
+                      >
+                      </lightning-formatted-number>
+                    </div>
+                  </div>
+                </article>
+              </template>
+            </div>
+          </template>
+
+          <!-- vazio -->
+          <template if:false={hasBikes}>
+            <template if:false={isLoading}>
+              <div class="empty-state">Nenhuma bike encontrada.</div>
+            </template>
+          </template>
         </div>
-    </lightning-card>
+
+        <!-- detalhe -->
+        <div class="detail-section">
+          <template if:true={selectedBike}>
+            <div class="detail-card">
+              <div class="detail-header">
+                <h2 class="detail-title">Bike Details</h2>
+
+                <lightning-button
+                  label="Close"
+                  variant="neutral"
+                  onclick={handleCloseDetails}
+                >
+                </lightning-button>
+              </div>
+
+              <div class="detail-image-wrapper">
+                <img
+                  class="detail-image"
+                  src={selectedBike.Image_URL_c__c}
+                  alt={selectedBike.Name}
+                />
+              </div>
+
+              <div class="detail-summary">
+                <h3 class="detail-bike-name">{selectedBike.Name}</h3>
+
+                <div class="detail-bike-type">
+                  <lightning-badge
+                    label={selectedBike.Bike_Type__c}
+                  ></lightning-badge>
+                </div>
+
+                <div class="detail-bike-price">
+                  <lightning-formatted-number
+                    value={selectedBike.Price__c}
+                    format-style="currency"
+                    currency-code="USD"
+                  >
+                  </lightning-formatted-number>
+                </div>
+
+                <div class="detail-status-row">
+                  <span class="detail-label-inline">Status:</span>
+                  <span class={selectedBike.statusClass}
+                    >{selectedBike.Status__c}</span
+                  >
+                </div>
+
+                <div class="detail-status-row">
+                  <span class="detail-label-inline">Stock:</span>
+                  <span class={selectedBike.stockStatusClass}
+                    >{selectedBike.Stock_Status__c}</span
+                  >
+                </div>
+              </div>
+
+              <div class="detail-info-grid">
+                <div class="detail-info-item">
+                  <span class="detail-label">SKU</span>
+                  <span class="detail-value">{selectedBike.SKU__c}</span>
+                </div>
+
+                <div class="detail-info-item">
+                  <span class="detail-label">Status</span>
+                  <span class="detail-value">{selectedBike.Status__c}</span>
+                </div>
+
+                <div class="detail-info-item">
+                  <span class="detail-label">Stock Quantity</span>
+                  <span class="detail-value"
+                    >{selectedBike.stockQuantityLabel}</span
+                  >
+                </div>
+              </div>
+
+              <c-quote-builder
+                bike-id={selectedBike.Id}
+                bike-name={selectedBike.Name}
+                default-unit-price={selectedBike.Price__c}
+              >
+              </c-quote-builder>
+            </div>
+          </template>
+
+          <template if:false={selectedBike}>
+            <div class="detail-empty">
+              <span>Select a bike to view details.</span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </lightning-card>
 </template>
