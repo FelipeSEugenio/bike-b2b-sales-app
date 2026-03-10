@@ -104,5 +104,76 @@ private class BikeOrderServiceTest {
       WHERE Bike_Order__c = :orderId
     ];
     System.assertEquals(2, itemCount);
+
+    // Valida baixa de estoque após conversão (20 - 3 = 17)
+    bike = [
+      SELECT Stock_Quantity__c, Stock_Status__c
+      FROM Bike__c
+      WHERE Id = :bike.Id
+      LIMIT 1
+    ];
+    System.assertEquals(17, bike.Stock_Quantity__c);
+    System.assertEquals('In Stock', bike.Stock_Status__c);
+  }
+
+  // Impede conversão quando alguma bike não possui estoque suficiente
+  @IsTest
+  static void deveBloquearConversaoQuandoEstoqueForInsuficiente() {
+    Account acc = new Account(Name = 'Conta Sem Estoque');
+    insert acc;
+
+    Bike__c bike = new Bike__c(
+      Name = 'Bike Sem Estoque',
+      SKU__c = 'CONV-SEM-ESTOQUE',
+      Price__c = 200,
+      Bike_Type__c = 'Road',
+      Status__c = 'Active',
+      Stock_Quantity__c = 1
+    );
+    insert bike;
+
+    Bike_Quote__c quote = new Bike_Quote__c(
+      Name = 'Quote Sem Estoque',
+      Account__c = acc.Id,
+      Status__c = 'Draft'
+    );
+    insert quote;
+
+    insert new Bike_Quote_Item__c(
+      Bike_Quote__c = quote.Id,
+      Bike__c = bike.Id,
+      Quantity__c = 2,
+      Unit_Price__c = 200
+    );
+
+    Test.startTest();
+    try {
+      BikeOrderService.convertQuoteToOrder(quote.Id);
+      System.assert(
+        false,
+        'Conversão deveria falhar por estoque insuficiente.'
+      );
+    } catch (Exception e) {
+      System.assert(e.getMessage().contains('Estoque insuficiente'));
+    }
+    Test.stopTest();
+
+    // Garante que pedido não foi criado
+    Integer orderCount = [
+      SELECT COUNT()
+      FROM Bike_Order__c
+      WHERE Customer_Account__c = :acc.Id
+    ];
+    System.assertEquals(0, orderCount);
+
+    // Garante que estoque da bike permaneceu inalterado
+    bike = [
+      SELECT Stock_Quantity__c, Stock_Status__c
+      FROM Bike__c
+      WHERE Id = :bike.Id
+      LIMIT 1
+    ];
+    System.assertEquals(1, bike.Stock_Quantity__c);
+    System.assertEquals('Low Stock', bike.Stock_Status__c);
   }
 }

@@ -82,6 +82,62 @@ public with sharing class BikeOrderService {
       );
     }
 
+    // Soma quantidade pedida por bike para validar estoque corretamente
+    Map<Id, Decimal> requestedQtyByBike = new Map<Id, Decimal>();
+    for (Bike_Quote_Item__c quoteItem : quoteItems) {
+      if (quoteItem.Bike__c == null) {
+        throw new BikeOrderServiceException(
+          'Item da quote sem bike não pode ser convertido.'
+        );
+      }
+
+      Decimal requestedQty = quoteItem.Quantity__c == null
+        ? 0
+        : quoteItem.Quantity__c;
+      Decimal currentQty = requestedQtyByBike.containsKey(quoteItem.Bike__c)
+        ? requestedQtyByBike.get(quoteItem.Bike__c)
+        : 0;
+
+      requestedQtyByBike.put(quoteItem.Bike__c, currentQty + requestedQty);
+    }
+
+    // Carrega bikes envolvidas para validar e atualizar estoque
+    Map<Id, Bike__c> bikesById = new Map<Id, Bike__c>(
+      [
+        SELECT Id, Name, Stock_Quantity__c, Stock_Status__c
+        FROM Bike__c
+        WHERE Id IN :requestedQtyByBike.keySet()
+        FOR UPDATE
+      ]
+    );
+
+    List<Bike__c> bikesToUpdate = new List<Bike__c>();
+
+    // Valida se há estoque suficiente para todos os itens da quote
+    for (Id bikeId : requestedQtyByBike.keySet()) {
+      Bike__c bike = bikesById.get(bikeId);
+      if (bike == null) {
+        throw new BikeOrderServiceException(
+          'Bike do item da quote não encontrada.'
+        );
+      }
+
+      Decimal availableQty = bike.Stock_Quantity__c == null
+        ? 0
+        : bike.Stock_Quantity__c;
+      Decimal requestedQty = requestedQtyByBike.get(bikeId);
+
+      if (availableQty < requestedQty) {
+        throw new BikeOrderServiceException(
+          'Estoque insuficiente para a bike ' + bike.Name + '.'
+        );
+      }
+
+      // Aplica baixa de estoque da bike após validação
+      bike.Stock_Quantity__c = availableQty - requestedQty;
+      bikesToUpdate.add(bike);
+    }
+
     // Cria pedido base usando a conta da quote
     Bike_Order__c order = new Bike_Order__c(
       Name = 'Order from ' + quote.Name,
@@ -104,6 +160,10 @@ public with sharing class BikeOrderService {
       );
     }
     insert orderItems;
+
+    // Recalcula status de estoque e salva bikes com quantidade atualizada
+    BikeService.applyStockStatus(bikesToUpdate);
+    update bikesToUpdate;
 
     // Retorna Id do pedido criado para uso futuro na UI/API
     return order.Id;
