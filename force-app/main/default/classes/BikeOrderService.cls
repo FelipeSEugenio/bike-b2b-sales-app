@@ -47,6 +47,7 @@ public with sharing class BikeOrderService {
   }
 
   // Converte uma quote em pedido e copia seus itens
+  @AuraEnabled
   public static Id convertQuoteToOrder(Id quoteId) {
     if (quoteId == null) {
       throw new BikeOrderServiceException(

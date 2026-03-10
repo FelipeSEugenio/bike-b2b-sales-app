@@ -25,6 +25,7 @@
     <template if:true={hasQuote}>
       <div class="quote-status-row">
         <span class="quote-status-badge">{quoteLabel}</span>
+        <span class="quote-status-badge">Status: {quoteStatus}</span>
       </div>
 
       <div class="quote-block quote-item-block">
@@ -70,6 +71,21 @@
         >
         </lightning-formatted-number>
       </div>
+
+      <lightning-button
+        class="quote-button"
+        label="Convert Quote to Order"
+        variant="brand"
+        onclick={handleConvertToOrder}
+        disabled={isConvertDisabled}
+      >
+      </lightning-button>
+
+      <template if:true={createdOrderId}>
+        <div class="quote-status-row">
+          <span class="quote-status-badge">{orderLabel}</span>
+        </div>
+      </template>
     </template>
   </div>
 </template>

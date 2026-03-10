@@ -4,7 +4,8 @@ import {
   createRecord,
   getRecord,
   getFieldValue,
-  notifyRecordUpdateAvailable
+  notifyRecordUpdateAvailable,
+  updateRecord
 } from "lightning/uiRecordApi";
 
 import BIKE_QUOTE_OBJECT from "@salesforce/schema/Bike_Quote__c";
@@ -17,8 +18,9 @@ import BIKE_QUOTE_ITEM_QUOTE_FIELD from "@salesforce/schema/Bike_Quote_Item__c.B
 import BIKE_QUOTE_ITEM_BIKE_FIELD from "@salesforce/schema/Bike_Quote_Item__c.Bike__c";
 import BIKE_QUOTE_ITEM_QTY_FIELD from "@salesforce/schema/Bike_Quote_Item__c.Quantity__c";
 import BIKE_QUOTE_ITEM_UNIT_PRICE_FIELD from "@salesforce/schema/Bike_Quote_Item__c.Unit_Price__c";
+import convertQuoteToOrder from "@salesforce/apex/BikeOrderService.convertQuoteToOrder";
 
-const QUOTE_FIELDS = [BIKE_QUOTE_TOTAL_FIELD];
+const QUOTE_FIELDS = [BIKE_QUOTE_TOTAL_FIELD, BIKE_QUOTE_STATUS_FIELD];
 
 // Componente para criar quote rápida a partir da bike selecionada
 export default class QuoteBuilder extends LightningElement {
@@ -67,6 +69,8 @@ export default class QuoteBuilder extends LightningElement {
   hasEditedUnitPrice = false;
   isSavingQuote = false;
   isAddingItem = false;
+  isConvertingOrder = false;
+  createdOrderId;
 
   @wire(getRecord, { recordId: "$quoteId", fields: QUOTE_FIELDS })
   wiredQuote;
@@ -95,6 +99,11 @@ export default class QuoteBuilder extends LightningElement {
     );
   }
 
+  // Permite converter apenas quando existe quote no fluxo atual
+  get canConvertToOrder() {
+    return this.hasQuote && !this.isConvertingOrder;
+  }
+
   get isCreateQuoteDisabled() {
     return !this.canCreateQuote;
   }
@@ -103,13 +112,30 @@ export default class QuoteBuilder extends LightningElement {
     return !this.canAddItem;
   }
 
+  get isConvertDisabled() {
+    return !this.canConvertToOrder;
+  }
+
   get quoteTotal() {
     return getFieldValue(this.wiredQuote.data, BIKE_QUOTE_TOTAL_FIELD) || 0;
+  }
+
+  // Retorna status atual da quote carregada
+  get quoteStatus() {
+    return (
+      getFieldValue(this.wiredQuote.data, BIKE_QUOTE_STATUS_FIELD) || "Draft"
+    );
   }
 
   get quoteLabel() {
     if (!this.quoteId) return "";
     return `Quote Reference: ${this.quoteId}`;
+  }
+
+  // Exibe referência do pedido criado após conversão
+  get orderLabel() {
+    if (!this.createdOrderId) return "";
+    return `Order Reference: ${this.createdOrderId}`;
   }
 
   // Captura conta selecionada para vincular na quote
@@ -217,6 +243,52 @@ export default class QuoteBuilder extends LightningElement {
       this.showError(this.getErrorMessage(error));
     } finally {
       this.isAddingItem = false;
+    }
+  }
+
+  // Atualiza quote para Accepted antes da conversão
+  async ensureQuoteAccepted() {
+    if (!this.quoteId) return;
+
+    if (this.quoteStatus === "Accepted") {
+      return;
+    }
+
+    const fields = {
+      Id: this.quoteId,
+      [BIKE_QUOTE_STATUS_FIELD.fieldApiName]: "Accepted"
+    };
+
+    await updateRecord({ fields });
+    await notifyRecordUpdateAvailable([{ recordId: this.quoteId }]);
+  }
+
+  // Converte quote atual em pedido
+  async handleConvertToOrder() {
+    if (!this.quoteId) {
+      this.showError("Create a quote first.");
+      return;
+    }
+
+    this.isConvertingOrder = true;
+
+    try {
+      await this.ensureQuoteAccepted();
+
+      const orderId = await convertQuoteToOrder({ quoteId: this.quoteId });
+      this.createdOrderId = orderId;
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Quote Converted",
+          message: `Order ${orderId} created successfully.`,
+          variant: "success"
+        })
+      );
+    } catch (error) {
+      this.showError(this.getErrorMessage(error));
+    } finally {
+      this.isConvertingOrder = false;
     }
   }
 
