@@ -1,124 +1,227 @@
-# Bike B2B Sales App
+# 🚴 Bike B2B Sales App
 
-Bike B2B Sales App is a Salesforce portfolio project built to simulate a real B2B product catalog experience for bicycle sales.
+Salesforce portfolio project simulating a **B2B product catalog and quote workflow** using Apex, SOQL and Lightning Web Components (LWC).
 
-The application allows users to browse bikes, search products, filter by type, sort results, and view detailed product information in a side panel.
+This project demonstrates how to build a structured Salesforce application with **backend business logic, frontend UI, and scalable architecture**.
 
-This project was developed to strengthen practical skills in **Salesforce Development**, focusing on **Apex**, **SOQL**, and **Lightning Web Components (LWC)**.
-
----
-
-## Project Goals
-
-The main goal of this project is to build a professional portfolio application that demonstrates how a Salesforce Developer can create a product-driven experience with:
-
-- custom objects
-- Apex backend logic
-- SOQL queries
-- LWC frontend components
-- state management
-- incremental UI/UX improvements
-
-This application was designed as a **V1 foundation**, with future plans for more advanced **B2B sales features** in V2.
+Português: [README.pt.md](README.pt.md)
 
 ---
 
-## Tech Stack
+# 🧠 Project Overview
 
-- **Salesforce**
-- **Apex**
-- **SOQL**
-- **Lightning Web Components (LWC)**
+The application simulates a simplified **B2B sales process** inside Salesforce.
+
+Users can:
+
+- Browse a bike product catalog
+- Check stock availability
+- Create draft quotes
+- Add bikes to a quote
+- Automatically calculate quote totals
+
+The goal of this project is to demonstrate **Salesforce development best practices** including Apex services, thin triggers, and LWC UI integration.
 
 ---
 
-## Current Features (V1)
+# ✨ Features
+
+## 🚴 Bike Catalog
 
 - Bike catalog grid
-- Product detail side panel
-- Search by **name**, **type**, and **SKU**
-- Dynamic filter by bike type
-- Sorting by:
-  - Price: Low to High
-  - Price: High to Low
-  - Name: A to Z
-- Selected bike visual highlight
-- Visual product status badges
-- Loading and empty states
-- Responsive layout improvements
+- Search and filtering
+- Bike detail panel
+
+## 📦 Stock Management
+
+- Track stock quantity
+- Automatic stock status calculation
+
+Stock statuses:
+
+| Status          | Description          |
+| --------------- | -------------------- |
+| 🟢 In Stock     | Product available    |
+| 🟡 Low Stock    | Limited availability |
+| 🔴 Out of Stock | Product unavailable  |
+
+Visual badges are displayed directly in the catalog.
 
 ---
 
-## Data Model
+## 💰 Quote Builder
 
-### Custom Object
-- `Bike__c`
+Create and manage **Draft Quotes** directly from the catalog.
 
-### Main Fields
-- `Name`
-- `SKU__c`
-- `Price__c`
-- `Bike_Type__c`
-- `Status__c`
-- `Image_URL_c__c`
+Capabilities:
 
----
+- Select **Account**
+- Add bikes to quote
+- Define quantity
+- Prefill price from bike price
+- Automatic subtotal calculation
+- Automatic quote total calculation
 
-## Apex Layer
+Safeguards:
 
-### `BikeSelector`
-This Apex class is responsible for querying bike data from Salesforce.
-
-#### Methods
-- `getActiveBikes(Integer limitSize)`
-  - Returns active bikes for the catalog view
-- `getById(Id bikeId)`
-  - Returns the details of a selected bike
-
-The Apex layer was kept simple and focused for V1, with room for future backend filtering and business rules in V2.
+- Cannot create quotes for out-of-stock bikes
+- Quantity validation
+- Price validation
+- Success and error toast messages
 
 ---
 
-## Frontend Layer
+# 🏗 Architecture
 
-### `bikeCatalog`
-Main LWC component responsible for the catalog experience.
+The project follows a layered architecture:
 
-#### Responsibilities
-- load bikes from Apex using `@wire`
-- render product cards
-- manage selected bike state
-- apply search, type filtering, and sorting
-- load bike details on selection
-- display a side detail panel
+LWC (UI)
+↓
+Apex Controllers
+↓
+Service Layer
+↓
+Selectors (SOQL queries)
+↓
+Custom Objects
 
----
+Core Apex classes:
 
-## User Experience
+BikeSelector
+BikeService
+BikeOrderService
+BikeQuoteService
 
-The current version focuses on a clean and practical catalog flow:
-
-1. Users can browse all available bikes
-2. Search results update dynamically
-3. Bikes can be filtered by type
-4. Results can be sorted by price or name
-5. Clicking a bike opens its details in a side panel
-6. Selected bikes receive visual highlight
-7. Product status is shown visually for better commercial context
+Triggers are kept **thin**, delegating business logic to services.
 
 ---
 
-## Screenshots
+# 🧩 Data Model
 
-![alt text](image.png)
-![alt text](image-1.png)
+Custom objects used:
 
-- catalog view
-- filtered results
-- selected bike detail panel
+Bike**c
+Bike_Order**c
+Bike_Order_Item**c
+Bike_Quote**c
+Bike_Quote_Item\_\_c
 
-Example:
+Important fields:
 
-```md
-![Bike Catalog](./images/bike-catalog.png)
-![Bike Details](./images/bike-details.png)
+Stock_Quantity**c
+Stock_Status**c
+Quantity**c
+Unit_Price**c
+Subtotal**c
+Total_Amount**c
+Account\_\_c
+
+---
+
+# 🖥 Lightning Web Components
+
+Main UI components:
+
+bikeCatalog
+bikeCard
+bikeDetails
+quoteBuilder
+
+UI capabilities include:
+
+- Catalog grid
+- Stock status badges
+- Bike detail panel
+- Quote builder
+
+---
+
+# ⚙️ Technologies Used
+
+Salesforce DX
+Apex
+SOQL
+Lightning Web Components (LWC)
+JavaScript
+Git
+VS Code
+
+---
+
+# 🚀 Running the Project
+
+Clone repository:
+
+git clone https://github.com/FelipeSEugenio/bike-b2b-sales-app.git
+
+Open project:
+
+cd bike-b2b-sales-app
+code .
+
+Login to Salesforce org:
+
+sf org login web
+
+Deploy metadata:
+
+sf project deploy start
+
+Open the org:
+
+sf org open
+
+---
+
+# 🧪 Tests
+
+Run Apex tests:
+
+sf apex run test --code-coverage --result-format human
+
+Run LWC tests:
+
+npm run test:unit
+
+---
+
+# 📈 Roadmap
+
+Future improvements planned:
+
+- Quote → Order conversion
+- Order fulfillment workflow
+- Inventory reservation
+- Account pricing tiers
+- Enhanced UI/UX
+
+---
+
+# 📸 Screenshots
+
+![alt text](image-2.png)
+![alt text](image-3.png)
+
+---
+
+# 👨‍💻 Author
+
+Felipe Siqueira Eugênio
+
+Salesforce Developer
+Apex • LWC • SOQL • CRM • Agentforce
+
+LinkedIn
+GitHub
+
+---
+
+# ⭐ Purpose of This Project
+
+This project was built as a **Salesforce Developer portfolio project** demonstrating:
+
+- Apex backend development
+- LWC frontend development
+- Business logic implementation
+- Git version control workflow
+- Salesforce architecture best practices
