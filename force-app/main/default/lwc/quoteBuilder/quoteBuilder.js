@@ -21,8 +21,25 @@ import BIKE_QUOTE_ITEM_UNIT_PRICE_FIELD from "@salesforce/schema/Bike_Quote_Item
 const QUOTE_FIELDS = [BIKE_QUOTE_TOTAL_FIELD];
 
 export default class QuoteBuilder extends LightningElement {
-  @api bikeId;
+  _bikeId;
+  @api
+  get bikeId() {
+    return this._bikeId;
+  }
+
+  set bikeId(value) {
+    const hasChanged = this._bikeId !== value;
+    this._bikeId = value;
+
+    // When a new bike is selected, prefill unit price from that bike again.
+    if (hasChanged) {
+      this.hasEditedUnitPrice = false;
+      this.unitPrice = this._defaultUnitPrice;
+    }
+  }
+
   @api bikeName;
+  @api isBikeOutOfStock = false;
 
   _defaultUnitPrice = 0;
 
@@ -56,7 +73,12 @@ export default class QuoteBuilder extends LightningElement {
   }
 
   get canCreateQuote() {
-    return Boolean(this.accountId) && !this.hasQuote && !this.isSavingQuote;
+    return (
+      Boolean(this.accountId) &&
+      !this.hasQuote &&
+      !this.isSavingQuote &&
+      !this.isBikeOutOfStock
+    );
   }
 
   get canAddItem() {
@@ -83,7 +105,7 @@ export default class QuoteBuilder extends LightningElement {
 
   get quoteLabel() {
     if (!this.quoteId) return "";
-    return `Quote ${this.quoteId}`;
+    return `Quote Reference: ${this.quoteId}`;
   }
 
   handleAccountChange(event) {
@@ -102,6 +124,11 @@ export default class QuoteBuilder extends LightningElement {
   async handleCreateDraftQuote() {
     if (!this.accountId) {
       this.showError("Select an account before creating a quote.");
+      return;
+    }
+
+    if (this.isBikeOutOfStock) {
+      this.showError("Cannot create a quote for an out-of-stock bike.");
       return;
     }
 
