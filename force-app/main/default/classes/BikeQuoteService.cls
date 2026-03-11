@@ -1,3 +1,4 @@
+// Regras de negócio da quote de bikes
 public with sharing class BikeQuoteService {
   // Valida defaults e valores básicos dos itens da quote
   public static void validateQuoteItems(List<Bike_Quote_Item__c> items) {
