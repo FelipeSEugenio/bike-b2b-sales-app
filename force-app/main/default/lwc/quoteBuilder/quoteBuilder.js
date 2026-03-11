@@ -9,9 +9,10 @@ import {
 } from "lightning/uiRecordApi";
 
 import BIKE_QUOTE_OBJECT from "@salesforce/schema/Bike_Quote__c";
-import BIKE_QUOTE_ACCOUNT_FIELD from "@salesforce/schema/Bike_Quote__c.Account__c";
+import NAME_FIELD from "@salesforce/schema/Bike_Quote__c.Name";
+import ACCOUNT_FIELD from "@salesforce/schema/Bike_Quote__c.Account__c";
 import BIKE_QUOTE_CONVERTED_ORDER_FIELD from "@salesforce/schema/Bike_Quote__c.Converted_Order__c";
-import BIKE_QUOTE_STATUS_FIELD from "@salesforce/schema/Bike_Quote__c.Status__c";
+import STATUS_FIELD from "@salesforce/schema/Bike_Quote__c.Status__c";
 import BIKE_QUOTE_TOTAL_FIELD from "@salesforce/schema/Bike_Quote__c.Total_Amount__c";
 
 import BIKE_QUOTE_ITEM_OBJECT from "@salesforce/schema/Bike_Quote_Item__c";
@@ -22,8 +23,9 @@ import BIKE_QUOTE_ITEM_UNIT_PRICE_FIELD from "@salesforce/schema/Bike_Quote_Item
 import convertQuoteToOrder from "@salesforce/apex/BikeOrderService.convertQuoteToOrder";
 
 const QUOTE_FIELDS = [
+  ACCOUNT_FIELD,
   BIKE_QUOTE_TOTAL_FIELD,
-  BIKE_QUOTE_STATUS_FIELD,
+  STATUS_FIELD,
   BIKE_QUOTE_CONVERTED_ORDER_FIELD
 ];
 
@@ -127,9 +129,7 @@ export default class QuoteBuilder extends LightningElement {
 
   // Retorna status atual da quote carregada
   get quoteStatus() {
-    return (
-      getFieldValue(this.wiredQuote.data, BIKE_QUOTE_STATUS_FIELD) || "Draft"
-    );
+    return getFieldValue(this.wiredQuote.data, STATUS_FIELD) || "Draft";
   }
 
   get quoteLabel() {
@@ -186,9 +186,9 @@ export default class QuoteBuilder extends LightningElement {
     try {
       // Monta campos mínimos para criação da quote
       const fields = {};
-      fields.Name = `Draft Quote ${Date.now()}`;
-      fields[BIKE_QUOTE_ACCOUNT_FIELD.fieldApiName] = this.accountId;
-      fields[BIKE_QUOTE_STATUS_FIELD.fieldApiName] = "Draft";
+      fields[NAME_FIELD.fieldApiName] = `Draft Quote ${Date.now()}`;
+      fields[ACCOUNT_FIELD.fieldApiName] = this.accountId;
+      fields[STATUS_FIELD.fieldApiName] = "Draft";
 
       const recordInput = {
         apiName: BIKE_QUOTE_OBJECT.objectApiName,
@@ -272,7 +272,7 @@ export default class QuoteBuilder extends LightningElement {
 
     const fields = {
       Id: this.quoteId,
-      [BIKE_QUOTE_STATUS_FIELD.fieldApiName]: "Accepted"
+      [STATUS_FIELD.fieldApiName]: "Accepted"
     };
 
     await updateRecord({ fields });
