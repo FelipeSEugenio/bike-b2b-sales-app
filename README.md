@@ -235,11 +235,11 @@ npm run test:unit
 
 > Product catalog with stock status badges
 
-![Bike Catalog](image-2.png)
+![Bike Catalog](screenshots/V1/catalog.png)!
 
 > Quote builder with line items and total calculation
 
-![Quote Builder](image-3.png)
+![Quote Builder](screenshots/V1/Bikedetails.png)!
 ![alt text](screenshots/V3/imgOut.png)
 ![alt text](screenshots/V3/imgCre.png)
 ![alt text](screenshots/V3/DraftCre.png)
