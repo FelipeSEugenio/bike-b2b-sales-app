@@ -29,37 +29,45 @@ const QUOTE_FIELDS = [
   BIKE_QUOTE_CONVERTED_ORDER_FIELD
 ];
 
-// Componente para criar quote rápida a partir da bike selecionada
+// Componente para criar quote rapida a partir da bike selecionada
 export default class QuoteBuilder extends LightningElement {
+  // Armazena o Id da bike selecionada
   _bikeId;
+
+  // Retorna o Id atual da bike selecionada
   @api
   get bikeId() {
     return this._bikeId;
   }
 
-  // Reage à troca de bike e prepara preço padrão
+  // Reage a troca de bike e prepara o preco padrao
   set bikeId(value) {
     const hasChanged = this._bikeId !== value;
     this._bikeId = value;
 
-    // When a new bike is selected, prefill unit price from that bike again.
+    // Ao trocar de bike, restaura o preco padrao enquanto nao houver edicao manual
     if (hasChanged) {
       this.hasEditedUnitPrice = false;
       this.unitPrice = this._defaultUnitPrice;
     }
   }
 
+  // Recebe o nome da bike selecionada
   @api bikeName;
+
+  // Indica se a bike selecionada esta sem estoque
   @api isBikeOutOfStock = false;
 
+  // Armazena o preco padrao recebido do componente pai
   _defaultUnitPrice = 0;
 
+  // Retorna o preco padrao atual da bike
   @api
   get defaultUnitPrice() {
     return this._defaultUnitPrice;
   }
 
-  // Mantém preço unitário sincronizado enquanto usuário não editar manualmente
+  // Mantem o preco unitario sincronizado enquanto o usuario nao editar manualmente
   set defaultUnitPrice(value) {
     this._defaultUnitPrice = value != null ? Number(value) : 0;
 
@@ -68,25 +76,49 @@ export default class QuoteBuilder extends LightningElement {
     }
   }
 
+  // Guarda a conta selecionada para a quote
   accountId;
+
+  // Guarda o Id da quote em edicao
   quoteId;
+
+  // Guarda os itens adicionados localmente para atualizacao imediata da UI
+  quoteItems = [];
+
+  // Guarda o total calculado localmente para exibicao imediata
+  localQuoteTotal = 0;
+
+  // Guarda a quantidade informada para o item atual
   quantity = 1;
+
+  // Guarda o preco unitario informado para o item atual
   unitPrice = 0;
 
+  // Indica se o preco unitario foi alterado manualmente
   hasEditedUnitPrice = false;
+
+  // Controla o estado de criacao da quote
   isSavingQuote = false;
+
+  // Controla o estado de adicao de item
   isAddingItem = false;
+
+  // Controla o estado de conversao da quote em pedido
   isConvertingOrder = false;
+
+  // Guarda o Id do pedido criado apos a conversao
   createdOrderId;
 
+  // Carrega os dados atuais da quote para status, total e pedido convertido
   @wire(getRecord, { recordId: "$quoteId", fields: QUOTE_FIELDS })
   wiredQuote;
 
-  // Indica se já existe quote criada no fluxo atual
+  // Indica se ja existe uma quote criada no fluxo atual
   get hasQuote() {
     return Boolean(this.quoteId);
   }
 
+  // Define se a criacao da quote esta habilitada
   get canCreateQuote() {
     return (
       Boolean(this.accountId) &&
@@ -96,6 +128,7 @@ export default class QuoteBuilder extends LightningElement {
     );
   }
 
+  // Define se a adicao de item esta habilitada
   get canAddItem() {
     return (
       this.hasQuote &&
@@ -111,33 +144,42 @@ export default class QuoteBuilder extends LightningElement {
     return this.hasQuote && !this.isConvertingOrder && !this.convertedOrderId;
   }
 
+  // Indica se o botao de criar quote deve ficar desabilitado
   get isCreateQuoteDisabled() {
     return !this.canCreateQuote;
   }
 
+  // Indica se o botao de adicionar item deve ficar desabilitado
   get isAddItemDisabled() {
     return !this.canAddItem;
   }
 
+  // Indica se o botao de converter deve ficar desabilitado
   get isConvertDisabled() {
     return !this.canConvertToOrder;
   }
 
+  // Retorna o total atual priorizando o valor calculado localmente
   get quoteTotal() {
+    if (this.quoteItems.length) {
+      return this.localQuoteTotal;
+    }
+
     return getFieldValue(this.wiredQuote.data, BIKE_QUOTE_TOTAL_FIELD) || 0;
   }
 
-  // Retorna status atual da quote carregada
+  // Retorna o status atual da quote carregada
   get quoteStatus() {
     return getFieldValue(this.wiredQuote.data, STATUS_FIELD) || "Draft";
   }
 
+  // Retorna o texto de referencia da quote atual
   get quoteLabel() {
     if (!this.quoteId) return "";
     return `Quote Reference: ${this.quoteId}`;
   }
 
-  // Exibe referência do pedido criado após conversão
+  // Retorna o Id do pedido criado apos a conversao
   get convertedOrderId() {
     return (
       this.createdOrderId ||
@@ -146,23 +188,23 @@ export default class QuoteBuilder extends LightningElement {
     );
   }
 
-  // Exibe referência do pedido criado após conversão
+  // Retorna o texto de referencia do pedido convertido
   get orderLabel() {
     if (!this.convertedOrderId) return "";
     return `Order Reference: ${this.convertedOrderId}`;
   }
 
-  // Captura conta selecionada para vincular na quote
+  // Captura a conta selecionada para vincular na quote
   handleAccountChange(event) {
     this.accountId = event.detail.recordId;
   }
 
-  // Atualiza quantidade do item da quote
+  // Atualiza a quantidade do item atual
   handleQuantityChange(event) {
     this.quantity = Number(event.target.value);
   }
 
-  // Atualiza preço unitário informado no formulário
+  // Atualiza o preco unitario informado no formulario
   handleUnitPriceChange(event) {
     this.hasEditedUnitPrice = true;
     this.unitPrice = Number(event.target.value);
@@ -184,7 +226,7 @@ export default class QuoteBuilder extends LightningElement {
     this.isSavingQuote = true;
 
     try {
-      // Monta campos mínimos para criação da quote
+      // Monta os campos minimos para criacao da quote
       const fields = {};
       fields[NAME_FIELD.fieldApiName] = `Draft Quote ${Date.now()}`;
       fields[ACCOUNT_FIELD.fieldApiName] = this.accountId;
@@ -196,9 +238,11 @@ export default class QuoteBuilder extends LightningElement {
       };
 
       const result = await createRecord(recordInput);
-      // Guarda referência da quote criada para próximos itens
+      // Guarda a referencia da quote criada para os proximos itens
       this.quoteId = result.id;
-      // Limpa referência anterior de pedido ao iniciar nova quote
+      this.quoteItems = [];
+      this.localQuoteTotal = 0;
+      // Limpa a referencia anterior de pedido ao iniciar nova quote
       this.createdOrderId = null;
 
       this.dispatchEvent(
@@ -230,14 +274,17 @@ export default class QuoteBuilder extends LightningElement {
     this.isAddingItem = true;
 
     try {
-      // Monta payload do item com quote, bike, quantidade e preço
+      // Normaliza os valores numericos usados na criacao do item
+      const quantity = Number(this.quantity);
+      const unitPrice = Number(this.unitPrice);
+      const itemTotal = quantity * unitPrice;
+
+      // Monta o payload do item com quote, bike, quantidade e preco
       const fields = {};
       fields[BIKE_QUOTE_ITEM_QUOTE_FIELD.fieldApiName] = this.quoteId;
       fields[BIKE_QUOTE_ITEM_BIKE_FIELD.fieldApiName] = this.bikeId;
-      fields[BIKE_QUOTE_ITEM_QTY_FIELD.fieldApiName] = Number(this.quantity);
-      fields[BIKE_QUOTE_ITEM_UNIT_PRICE_FIELD.fieldApiName] = Number(
-        this.unitPrice
-      );
+      fields[BIKE_QUOTE_ITEM_QTY_FIELD.fieldApiName] = quantity;
+      fields[BIKE_QUOTE_ITEM_UNIT_PRICE_FIELD.fieldApiName] = unitPrice;
 
       const recordInput = {
         apiName: BIKE_QUOTE_ITEM_OBJECT.objectApiName,
@@ -245,7 +292,31 @@ export default class QuoteBuilder extends LightningElement {
       };
 
       await createRecord(recordInput);
-      // Força atualização do total exibido após inserir item
+
+      // Calcula o total local imediatamente apos a criacao do item
+      const currentPersistedTotal =
+        getFieldValue(this.wiredQuote.data, BIKE_QUOTE_TOTAL_FIELD) || 0;
+      const currentDisplayedTotal = this.quoteItems.length
+        ? this.localQuoteTotal
+        : currentPersistedTotal;
+      const updatedQuoteTotal = currentDisplayedTotal + itemTotal;
+
+      // Atualiza a memoria local para forcar a reatividade da interface
+      this.quoteItems = [
+        ...this.quoteItems,
+        { qty: quantity, price: unitPrice }
+      ];
+      this.localQuoteTotal = updatedQuoteTotal;
+
+      // Persiste o total da quote para manter o valor alinhado no registro pai
+      await updateRecord({
+        fields: {
+          Id: this.quoteId,
+          [BIKE_QUOTE_TOTAL_FIELD.fieldApiName]: updatedQuoteTotal
+        }
+      });
+
+      // Notifica o LDS para recarregar os dados atualizados da quote
       await notifyRecordUpdateAvailable([{ recordId: this.quoteId }]);
 
       this.dispatchEvent(
@@ -262,7 +333,7 @@ export default class QuoteBuilder extends LightningElement {
     }
   }
 
-  // Atualiza quote para Accepted antes da conversão
+  // Atualiza a quote para Accepted antes da conversao
   async ensureQuoteAccepted() {
     if (!this.quoteId) return;
 
@@ -279,14 +350,14 @@ export default class QuoteBuilder extends LightningElement {
     await notifyRecordUpdateAvailable([{ recordId: this.quoteId }]);
   }
 
-  // Converte quote atual em pedido
+  // Converte a quote atual em pedido
   async handleConvertToOrder() {
     if (!this.quoteId) {
       this.showError("Create a quote first.");
       return;
     }
 
-    // Evita nova conversão quando já existe pedido gerado para a quote
+    // Evita nova conversao quando ja existe pedido gerado para a quote
     if (this.convertedOrderId) {
       this.showError(
         `This quote was already converted to order ${this.convertedOrderId}.`
@@ -316,7 +387,7 @@ export default class QuoteBuilder extends LightningElement {
     }
   }
 
-  // Exibe toast de erro padronizado
+  // Exibe um toast de erro padronizado
   showError(message) {
     this.dispatchEvent(
       new ShowToastEvent({
@@ -327,7 +398,7 @@ export default class QuoteBuilder extends LightningElement {
     );
   }
 
-  // Extrai mensagem amigável de erro do Lightning Data Service
+  // Extrai uma mensagem amigavel de erro do Lightning Data Service
   getErrorMessage(error) {
     if (error?.body?.message) {
       return error.body.message;
